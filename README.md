@@ -2,19 +2,7 @@
 
 # 🏥 Prescripto — Doctor Appointment System
 
-# 🏥 Prescripto — Doctor Appointment System
-
 ### A full-stack healthcare appointment booking platform with Admin, Doctor & Patient portals
-
-## 🔗 Live Demo
-
-| Portal | Live URL |
-|---|---|
-| 🟢 **Patient Frontend** | [doctor-appointment-frontend-f8hl.onrender.com](https://doctor-appointment-frontend-f8hl.onrender.com) |
-| 🟡 **Admin Panel** | [doctor-appointment-admin-zdnm.onrender.com](https://doctor-appointment-admin-zdnm.onrender.com) |
-| 🔵 **Backend API** | [doctor-appointment-backend-e1wn.onrender.com](https://doctor-appointment-backend-e1wn.onrender.com) |
-
-> ⚠️ Hosted on Render free tier — first load may take ~30 seconds to wake up.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-18-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -23,7 +11,24 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?style=for-the-badge&logo=jenkins&logoColor=white)](https://www.jenkins.io/)
 
+---
+
+### 🌐 Live Demo
+
+[![Frontend](https://img.shields.io/badge/🟢%20Patient%20App-Live-success?style=for-the-badge)](https://doctor-appointment-frontend-f8hl.onrender.com)
+[![Admin](https://img.shields.io/badge/🟡%20Admin%20Panel-Live-yellow?style=for-the-badge)](https://doctor-appointment-admin-zdnm.onrender.com)
+[![Backend](https://img.shields.io/badge/🔵%20Backend%20API-Live-blue?style=for-the-badge)](https://doctor-appointment-backend-e1wn.onrender.com)
+
+| Portal | Live URL |
+|---|---|
+| 🟢 **Patient Frontend** | https://doctor-appointment-frontend-f8hl.onrender.com |
+| 🟡 **Admin Panel** | https://doctor-appointment-admin-zdnm.onrender.com |
+| 🔵 **Backend API** | https://doctor-appointment-backend-e1wn.onrender.com |
+
+> ⚠️ Hosted on Render free tier — first load may take ~30 seconds to wake up.
+
 </div>
+
 
 ---
 
