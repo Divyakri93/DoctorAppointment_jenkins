@@ -20,29 +20,30 @@ pipeline {
         stage('Create Backend .env') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'MONGODB_URI',          variable: 'MONGODB_URI'),
-                    string(credentialsId: 'CLOUDINARY_NAME',      variable: 'CLOUDINARY_NAME'),
-                    string(credentialsId: 'CLOUDINARY_API_KEY',   variable: 'CLOUDINARY_API_KEY'),
-                    string(credentialsId: 'CLOUDINARY_SECRET_KEY',variable: 'CLOUDINARY_SECRET_KEY'),
-                    string(credentialsId: 'JWT_SECRET',           variable: 'JWT_SECRET'),
-                    string(credentialsId: 'RAZORPAY_KEY_ID',      variable: 'RAZORPAY_KEY_ID'),
-                    string(credentialsId: 'RAZORPAY_KEY_SECRET',  variable: 'RAZORPAY_KEY_SECRET')
+                    string(credentialsId: 'MONGODB_URI',           variable: 'MONGODB_URI'),
+                    string(credentialsId: 'CLOUDINARY_NAME',       variable: 'CLOUDINARY_NAME'),
+                    string(credentialsId: 'CLOUDINARY_API_KEY',    variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'CLOUDINARY_SECRET_KEY', variable: 'CLOUDINARY_SECRET_KEY'),
+                    string(credentialsId: 'JWT_SECRET',            variable: 'JWT_SECRET'),
+                    string(credentialsId: 'RAZORPAY_KEY_ID',       variable: 'RAZORPAY_KEY_ID'),
+                    string(credentialsId: 'RAZORPAY_KEY_SECRET',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
-                    sh """
-                        cat > backend/.env <<EOF
-MONGODB_URI=${MONGODB_URI}
-CLOUDINARY_NAME=${CLOUDINARY_NAME}
-CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-CLOUDINARY_SECRET_KEY=${CLOUDINARY_SECRET_KEY}
-ADMIN_EMAIL=admin@prescripto.com
-ADMIN_PASSWORD=qwerty123
-JWT_SECRET=${JWT_SECRET}
-RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
-RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
-CURRENCY=INR
-EOF
-                    """
-                    echo '.env file created for backend using Jenkins credentials'
+                    powershell '''
+                        $lines = @(
+                            "MONGODB_URI=$env:MONGODB_URI",
+                            "CLOUDINARY_NAME=$env:CLOUDINARY_NAME",
+                            "CLOUDINARY_API_KEY=$env:CLOUDINARY_API_KEY",
+                            "CLOUDINARY_SECRET_KEY=$env:CLOUDINARY_SECRET_KEY",
+                            "ADMIN_EMAIL=admin@prescripto.com",
+                            "ADMIN_PASSWORD=qwerty123",
+                            "JWT_SECRET=$env:JWT_SECRET",
+                            "RAZORPAY_KEY_ID=$env:RAZORPAY_KEY_ID",
+                            "RAZORPAY_KEY_SECRET=$env:RAZORPAY_KEY_SECRET",
+                            "CURRENCY=INR"
+                        )
+                        $lines | Set-Content -Path "backend\\.env" -Encoding UTF8
+                        Write-Host ".env file created successfully for backend"
+                    '''
                 }
             }
         }
@@ -53,7 +54,7 @@ EOF
                     steps {
                         dir('backend') {
                             echo 'Installing backend dependencies...'
-                            sh 'npm install'
+                            bat 'npm install'
                         }
                     }
                 }
@@ -61,7 +62,7 @@ EOF
                     steps {
                         dir('frontend') {
                             echo 'Installing frontend dependencies...'
-                            sh 'npm install'
+                            bat 'npm install'
                         }
                     }
                 }
@@ -69,7 +70,7 @@ EOF
                     steps {
                         dir('admin') {
                             echo 'Installing admin dependencies...'
-                            sh 'npm install'
+                            bat 'npm install'
                         }
                     }
                 }
@@ -82,7 +83,7 @@ EOF
                     steps {
                         dir('frontend') {
                             echo 'Building frontend...'
-                            sh 'npm run build'
+                            bat 'npm run build'
                         }
                     }
                 }
@@ -90,7 +91,7 @@ EOF
                     steps {
                         dir('admin') {
                             echo 'Building admin panel...'
-                            sh 'npm run build'
+                            bat 'npm run build'
                         }
                     }
                 }
@@ -100,21 +101,19 @@ EOF
         stage('Build Docker Images') {
             steps {
                 echo 'Building Docker images...'
-                sh """
-                    docker build -t ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}  ./backend
-                    docker build -t ${DOCKER_IMAGE_FRONTEND}:${DOCKER_TAG} ./frontend
-                    docker build -t ${DOCKER_IMAGE_ADMIN}:${DOCKER_TAG}    ./admin
+                bat """
+                    docker build -t %DOCKER_IMAGE_BACKEND%:%DOCKER_TAG%  ./backend
+                    docker build -t %DOCKER_IMAGE_FRONTEND%:%DOCKER_TAG% ./frontend
+                    docker build -t %DOCKER_IMAGE_ADMIN%:%DOCKER_TAG%    ./admin
                 """
             }
         }
 
         stage('Deploy with Docker Compose') {
             steps {
-                echo 'Deploying application using Docker Compose...'
-                sh """
-                    docker-compose down --remove-orphans || true
-                    docker-compose up -d --build
-                """
+                echo 'Deploying with Docker Compose...'
+                bat 'docker-compose down --remove-orphans'
+                bat 'docker-compose up -d --build'
             }
         }
 
@@ -122,11 +121,11 @@ EOF
             steps {
                 echo 'Waiting for services to start...'
                 sleep(time: 15, unit: 'SECONDS')
-                sh """
-                    curl -f http://localhost:5000 || echo 'Backend health check pending'
-                    curl -f http://localhost:5173 || echo 'Frontend health check pending'
-                    curl -f http://localhost:5174 || echo 'Admin health check pending'
-                """
+                bat '''
+                    curl -f http://localhost:5000 || echo Backend health check pending
+                    curl -f http://localhost:5173 || echo Frontend health check pending
+                    curl -f http://localhost:5174 || echo Admin health check pending
+                '''
             }
         }
     }
@@ -134,18 +133,17 @@ EOF
     post {
         success {
             echo '✅ Deployment successful!'
-            echo "Backend  → http://localhost:5000"
-            echo "Frontend → http://localhost:5173"
-            echo "Admin    → http://localhost:5174"
+            echo 'Backend  → http://localhost:5000'
+            echo 'Frontend → http://localhost:5173'
+            echo 'Admin    → http://localhost:5174'
         }
         failure {
             echo '❌ Build or deployment failed. Check logs above.'
-            sh 'docker-compose down || true'
+            bat 'docker-compose down'
         }
         always {
-            // Clean up the generated .env so secrets don't linger on disk
-            sh 'rm -f backend/.env'
-            echo 'Pipeline finished.'
+            powershell 'Remove-Item -Path "backend\\.env" -ErrorAction SilentlyContinue'
+            echo 'Pipeline finished. Secrets cleaned up.'
         }
     }
 }
