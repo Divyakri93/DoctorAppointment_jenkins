@@ -83,15 +83,46 @@ pipeline {
                 '''
             }
         }
+        stage('Deploy to Render') {
+            steps {
+                echo 'Triggering Render deployments...'
+                withCredentials([
+                    string(credentialsId: 'RENDER_BACKEND_HOOK',  variable: 'RENDER_BACKEND_HOOK'),
+                    string(credentialsId: 'RENDER_FRONTEND_HOOK', variable: 'RENDER_FRONTEND_HOOK'),
+                    string(credentialsId: 'RENDER_ADMIN_HOOK',    variable: 'RENDER_ADMIN_HOOK')
+                ]) {
+                    bat '''
+                        echo Triggering Backend  deployment on Render...
+                        curl -X POST "%RENDER_BACKEND_HOOK%"
+                        echo.
+                        echo Triggering Frontend deployment on Render...
+                        curl -X POST "%RENDER_FRONTEND_HOOK%"
+                        echo.
+                        echo Triggering Admin    deployment on Render...
+                        curl -X POST "%RENDER_ADMIN_HOOK%"
+                        echo.
+                        echo All Render deployments triggered successfully!
+                        exit /b 0
+                    '''
+                }
+            }
+        }
     }
 
     post {
         success {
             echo '========================================='
-            echo '✅ Deployment successful! Containers are running.'
-            echo 'Backend  → http://localhost:5000'
-            echo 'Frontend → http://localhost:5173'
-            echo 'Admin    → http://localhost:5174'
+            echo '✅ Pipeline completed successfully!'
+            echo ''
+            echo '🐳 Local Docker:'
+            echo '   Backend  → http://localhost:5000'
+            echo '   Frontend → http://localhost:5173'
+            echo '   Admin    → http://localhost:5174'
+            echo ''
+            echo '🌐 Render (Live - deploying now):'
+            echo '   Backend  → https://doctor-appointment-backend-e1wn.onrender.com'
+            echo '   Frontend → https://doctor-appointment-frontend-f8hl.onrender.com'
+            echo '   Admin    → https://doctor-appointment-admin-zdnm.onrender.com'
             echo '========================================='
         }
         failure {
