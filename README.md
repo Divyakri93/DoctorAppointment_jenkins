@@ -237,15 +237,15 @@ docker ps
 
 ## ⚙️ Jenkins CI/CD
 
-This project uses a fully automated **Jenkins Pipeline** defined in `Jenkinsfile`.
+This project uses a fully automated **Jenkins Pipeline** defined in `Jenkinsfile`. It builds the Docker images locally and then triggers the live Render deployments.
 
 ### Pipeline Stages
 
 ```
-┌──────────┐   ┌──────────────┐   ┌───────────────┐   ┌─────────┐   ┌──────────────┐
-│ Checkout │ → │ Create .env  │ → │ Build Docker  │ → │ Deploy  │ → │ Health Check │
-│  (Git)   │   │ (Credentials)│   │   Images      │   │ Compose │   │  (3 Ports)   │
-└──────────┘   └──────────────┘   └───────────────┘   └─────────┘   └──────────────┘
+┌──────────┐   ┌──────────────┐   ┌───────────────┐   ┌─────────┐   ┌──────────────┐   ┌─────────────────┐
+│ Checkout │ → │ Create .env  │ → │ Build Docker  │ → │ Deploy  │ → │ Health Check │ → │ Deploy to Render│
+│  (Git)   │   │ (Credentials)│   │   Images      │   │ Compose │   │  (3 Ports)   │   │ (Trigger Hooks) │
+└──────────┘   └──────────────┘   └───────────────┘   └─────────┘   └──────────────┘   └─────────────────┘
 ```
 
 ### Jenkins Credentials Required
@@ -261,15 +261,22 @@ Add these as **Secret Text** credentials in Jenkins:
 | `JWT_SECRET` | JWT signing secret |
 | `RAZORPAY_KEY_ID` | Razorpay key ID |
 | `RAZORPAY_KEY_SECRET` | Razorpay key secret |
+| `RENDER_BACKEND_HOOK` | Render Deploy Hook URL for Backend |
+| `RENDER_FRONTEND_HOOK` | Render Deploy Hook URL for Frontend |
+| `RENDER_ADMIN_HOOK` | Render Deploy Hook URL for Admin |
 
-### Setup Jenkins Job
+### Setup Jenkins Job & GitHub Webhook
 
-1. Create a new **Pipeline** job in Jenkins
-2. Set **SCM** → Git → your repository URL
-3. Set **Branch** → `*/main`
-4. Set **Script Path** → `Jenkinsfile`
-5. Add credentials as listed above
-6. Click **Build Now** 🚀
+1. Create a new **Pipeline** job in Jenkins.
+2. Set **SCM** → Git → your repository URL.
+3. Set **Branch** → `*/main`.
+4. Set **Script Path** → `Jenkinsfile`.
+5. Check **"GitHub hook trigger for GITScm polling"** in Build Triggers.
+6. Use a tool like `localtunnel` or `ngrok` to expose your local Jenkins to the internet (e.g., `npx localtunnel --port 8080`).
+7. Go to your GitHub Repository **Settings** → **Webhooks** → **Add webhook**.
+8. Set the **Payload URL** to your tunnel URL + `/github-webhook/` (e.g., `https://your-url.loca.lt/github-webhook/`).
+9. Set **Content type** to `application/json` and select **Just the push event**.
+10. Click **Add webhook**. Now, every `git push` will automatically trigger a full CI/CD deployment! 🚀
 
 ---
 
