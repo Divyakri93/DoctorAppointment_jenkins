@@ -48,59 +48,9 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            parallel {
-                stage('Backend Dependencies') {
-                    steps {
-                        dir('backend') {
-                            echo 'Installing backend dependencies...'
-                            bat 'npm install'
-                        }
-                    }
-                }
-                stage('Frontend Dependencies') {
-                    steps {
-                        dir('frontend') {
-                            echo 'Installing frontend dependencies...'
-                            bat 'npm install'
-                        }
-                    }
-                }
-                stage('Admin Dependencies') {
-                    steps {
-                        dir('admin') {
-                            echo 'Installing admin dependencies...'
-                            bat 'npm install'
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Build Frontend & Admin') {
-            parallel {
-                stage('Build Frontend') {
-                    steps {
-                        dir('frontend') {
-                            echo 'Building frontend...'
-                            bat 'npm run build'
-                        }
-                    }
-                }
-                stage('Build Admin') {
-                    steps {
-                        dir('admin') {
-                            echo 'Building admin panel...'
-                            bat 'npm run build'
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
-                echo 'Building Docker images...'
+                echo 'Building Docker images (npm install + build handled inside Docker)...'
                 bat """
                     docker build -t %DOCKER_IMAGE_BACKEND%:%DOCKER_TAG%  ./backend
                     docker build -t %DOCKER_IMAGE_FRONTEND%:%DOCKER_TAG% ./frontend
@@ -111,15 +61,16 @@ pipeline {
 
         stage('Deploy with Docker Compose') {
             steps {
-                echo 'Deploying with Docker Compose...'
+                echo 'Stopping old containers...'
                 bat 'docker-compose down --remove-orphans'
+                echo 'Starting new containers...'
                 bat 'docker-compose up -d --build'
             }
         }
 
         stage('Health Check') {
             steps {
-                echo 'Waiting for services to start...'
+                echo 'Waiting 15 seconds for services to start...'
                 sleep(time: 15, unit: 'SECONDS')
                 bat '''
                     curl -f http://localhost:5000 || echo Backend health check pending
@@ -132,10 +83,12 @@ pipeline {
 
     post {
         success {
+            echo '========================================='
             echo '✅ Deployment successful!'
             echo 'Backend  → http://localhost:5000'
             echo 'Frontend → http://localhost:5173'
             echo 'Admin    → http://localhost:5174'
+            echo '========================================='
         }
         failure {
             echo '❌ Build or deployment failed. Check logs above.'
