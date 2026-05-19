@@ -1,0 +1,59 @@
+services:
+  # ─── Backend Web Service ───────────────────────────────────────
+  - type: web
+    name: doctor-appointment-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: MONGODB_URI
+        sync: false
+      - key: CLOUDINARY_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_SECRET_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@prescripto.com
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: CURRENCY
+        value: INR
+
+  # ─── Frontend Static Site ──────────────────────────────────────
+  - type: web
+    name: doctor-appointment-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: VITE_BACKEND_URL
+        sync: false
+      - key: VITE_RAZORPAY_KEY_ID
+        sync: false
+
+  # ─── Admin Static Site ────────────────────────────────────────
+  - type: web
+    name: doctor-appointment-admin
+    runtime: static
+    rootDir: admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: VITE_BACKEND_URL
+        sync: false
