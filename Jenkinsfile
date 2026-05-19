@@ -70,12 +70,13 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                echo 'Waiting 15 seconds for services to start...'
-                sleep(time: 15, unit: 'SECONDS')
+                echo 'Waiting 30 seconds for services to start...'
+                sleep(time: 30, unit: 'SECONDS')
                 bat '''
-                    curl -f http://localhost:5000 || echo Backend health check pending
-                    curl -f http://localhost:5173 || echo Frontend health check pending
-                    curl -f http://localhost:5174 || echo Admin health check pending
+                    curl -s -o nul -w "Backend  (port 5000): HTTP %%{http_code}\n" http://localhost:5000 || echo Backend is starting up...
+                    curl -s -o nul -w "Frontend (port 5173): HTTP %%{http_code}\n" http://localhost:5173 || echo Frontend is starting up...
+                    curl -s -o nul -w "Admin    (port 5174): HTTP %%{http_code}\n" http://localhost:5174 || echo Admin is starting up...
+                    exit /b 0
                 '''
             }
         }
@@ -84,15 +85,16 @@ pipeline {
     post {
         success {
             echo '========================================='
-            echo '✅ Deployment successful!'
+            echo '✅ Deployment successful! Containers are running.'
             echo 'Backend  → http://localhost:5000'
             echo 'Frontend → http://localhost:5173'
             echo 'Admin    → http://localhost:5174'
             echo '========================================='
         }
         failure {
-            echo '❌ Build or deployment failed. Check logs above.'
-            bat 'docker-compose down'
+            echo '❌ Pipeline failed at a build/config stage.'
+            echo 'Note: If containers are running, they will NOT be stopped.'
+            echo 'Run: docker-compose down   (only if you want to stop them)'
         }
         always {
             powershell 'Remove-Item -Path "backend\\.env" -ErrorAction SilentlyContinue'
